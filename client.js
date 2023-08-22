@@ -1,33 +1,52 @@
 class Client{
+
+	connectionToServer;
+	net = require('net');
+	isPlaying = false;
+
   	constructor(){
 
   	}
 	
-	sendWordToServer(word){
-
+	sendWordToServer(message){
+		this.connectionToServer.write(message);
 	}
 
 	connectToServer(port=9999){
-		const net = require('net');
 
-		const client = new net.Socket();
+		this.connectionToServer = new this.net.Socket();
 
-		client.connect(port, 'localhost', () => {
+		this.connectionToServer.connect(port, 'localhost', () => {
 			console.log('Connected to server');
 
 			// Send data to the server
 			const message = 'Hello from client!';
-			client.write(message);
-
-			// Close the connection after sending the message
-			client.end();
+			this.connectionToServer.write(message);
 		});
 
-		client.on('close', () => {
+		this.connectionToServer.on('close', () => {
 			console.log('Connection closed');
 		});
 
 
+	}
+
+	endConnection(){
+		this.connectionToServer.end();
+	}
+
+	getOutput(){
+		if (this.isPlaying){
+			return "Opponent's word:\n";
+		}
+		return "Welcome";
+	}
+
+	processInput(word){
+		switch (word){
+			case 'play':
+				this.sendWordToServer('play');
+		}
 	}
 
 	async serve(){
@@ -35,16 +54,18 @@ class Client{
   			input: process.stdin,
 			output: process.stdout
 		});
-		//connect to server
+		
 		//determine who goes first
 		while(true){
-			console.log("Opponent's word:\n");
-			//var word = await readline.question('Enter your word:');
+			console.log(this.getOutput());
 			var word = await new Promise(resolve => readline.question('Enter your word:', resolve));
+			
+			this.processInput(word);
+
 			// Add an exit condition for the loop, for example:
-            		if (word === 'exit') {
-                		break;
-            		}
+			if (word === 'exit') {
+				break;
+			}
 		}
 	}
 
@@ -53,4 +74,5 @@ class Client{
 client = new Client();
 client.connectToServer();
 // run client
-// Client.serve();
+client.serve();
+// client.endConnection();
