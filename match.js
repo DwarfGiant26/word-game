@@ -1,4 +1,4 @@
-class GamePlatform{
+class Match{
 
     contructor(connectionId){
         this.connectionId = connectionId;
@@ -6,3 +6,5 @@ class GamePlatform{
     
     connectionId;
 }
+
+module.exports = Match;

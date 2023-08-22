@@ -24,6 +24,10 @@ class Client{
 			this.connectionToServer.write(message);
 		});
 
+		this.connectionToServer.on('Match created!', () => {
+			console.log('Match is created');
+		});
+
 		this.connectionToServer.on('close', () => {
 			console.log('Connection closed');
 		});
