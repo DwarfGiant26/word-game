@@ -1,3 +1,5 @@
+const StringFormatter = require('./stringFormater.js');
+
 class Client{
 
 	connectionToServer;
@@ -30,6 +32,10 @@ class Client{
 
 		this.connectionToServer.on('close', () => {
 			console.log('Connection closed');
+		});
+
+		this.connectionToServer.on('data', (data) => {
+			console.log(data.toString());
 		});
 
 
