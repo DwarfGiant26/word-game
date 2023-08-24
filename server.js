@@ -16,18 +16,6 @@ class Server{
 
     async startListening(port=9999){
 
-        // const net = require('net');
-
-        // const server = net.createServer(socket => {
-        //     console.log('Client connected');
-        //     this.defineSocketBehaviour(socket);
-
-        // });
-
-        // server.listen(port, () => {
-        //     console.log('Server listening on port', port);
-        // });
-
         const net = require('net');
 
         const server = net.createServer(socket => {
@@ -49,6 +37,7 @@ class Server{
             switch (data){
                 case 'play':
                     this.addPlayerToMatchMakingList(socket);
+
             }
         });
 
@@ -65,17 +54,13 @@ class Server{
     createMatch(player1Socket, player2Socket){
         
         // create match
-        console.log('Create Match');
         var newMatch = new Match(this.generateMatchId(), this.lastPort+1, this.lastPort+2)
         this.matches.push(newMatch);
-        console.log(newMatch.portPlayer1);
-        console.log(newMatch.portPlayer2);
-        console.log('Match Created');       
-        // inform client on the port of match
-        player1Socket.write(StringFormatter.format("Connect To Match in Port {}",newMatch.getPortPlayer1()));
-        player2Socket.write(StringFormatter.format("Connect To Match in Port {}",newMatch.getPortPlayer2()));
+        newMatch.serve();
 
-        console.log('Player informed on match');
+        // inform client on the port of match
+        player1Socket.write(StringFormatter.format("match {}, 1",newMatch.getPortPlayer1()));
+        player2Socket.write(StringFormatter.format("match {}, 2",newMatch.getPortPlayer2()));
         // update states
         this.lastPort += 2;
     }

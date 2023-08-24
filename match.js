@@ -10,7 +10,7 @@ class Match{
     listenerPlayer1;
     listenerPlayer2;
     isPlayer1Turn = true;
-    lastWord = ""
+    lastWord = "";
 
     constructor(connectionId, portPlayer1, portPlayer2){
         this.connectionId = connectionId;
@@ -24,21 +24,29 @@ class Match{
 
     getPortPlayer2(){return this.portPlayer2};
 
-    processDataFn(data, socket, peerSocket){
-        if (!checkWordValidity(data)){
+    processDataFn(data, socket, otherPlayerNo){
+        if (!this.checkWordValidity(data)){
             socket.write("Invalid word");
         }else{
-            peerSocket.write(data);
+            this.sendToPlayer(otherPlayerNo, data);
         }
-        
+    }
+
+    sendToPlayer(playerNo, data){
+        if(playerNo == 1){
+            this.listenerPlayer1.sendToPlayer("Opponent's word:"+data);
+        }else{
+            this.listenerPlayer2.sendToPlayer("Opponent's word:"+data);
+        }
     }
 
     checkWordValidity(data){
-        return true
+        return true;
     }
 
     async serve(){
-        this.listener.serve()
+        this.listenerPlayer1.serve((data, socket)=>{this.processDataFn(data, socket, 2)});
+        this.listenerPlayer2.serve((data, socket)=>{this.processDataFn(data, socket, 1)});
     }
 }
 
