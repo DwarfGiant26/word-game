@@ -43,12 +43,11 @@ class Client{
 			data = data.toString()
 			
 			this.output = data;
-
-			console.log(StringFormatter.format('SF {}', this.output));
 			
 			var match = data.match(/match (?<port>\d+), (?<playerNo>\d)/)
 			if (match){
 				this.connectToMatch(match.groups.port);
+				
 				if(match.groups.playerNo == 1){
 					this.isMyTurn = true;
 				}else{
@@ -81,6 +80,18 @@ class Client{
 		this.connectionToServer.end();
 	}
 
+	updateTurn(isInputMode, isPlaying, output){
+		if(isPlaying){
+			if(isInputMode){
+				this.isMyTurn = false
+			}else{
+				if(output.match(/Opponent's word.*/)){
+					this.isMyTurn = !this.isMyTurn
+				}
+			}
+		}
+	}
+
 	async serve(){
 		const readline = require('readline').createInterface({
   			input: process.stdin,
@@ -93,14 +104,17 @@ class Client{
 			if(this.isInputMode){
 				var word = await new Promise(resolve => readline.question(ClientIOLogic.getInputPrompt(this.isPlaying), resolve));
 				ClientIOLogic.processInput(this.isPlaying, word, (message)=>{this.sendWordToServer(message)}, (message)=>{this.sendWordToMatch(message)}, (value)=>{this.setIsInputMode(value)});
-				console.log(StringFormatter.format("In input: {}", this.isInputMode));
+				this.updateTurn(true, this.isPlaying, null);
 			}else{
 				var output = await ClientIOLogic.getOutput(this.isPlaying, this.isMyTurn, ()=>{return this.output});
 				if(output != null){
 					console.log(output);
 				}
+				
+				// update states
+				this.updateTurn(false, this.isPlaying, output);
 				ClientIOLogic.setIsInputModeBasedOnOutput(this.isPlaying, this.isMyTurn, output, (value)=>{this.setIsInputMode(value)});
-				console.log(StringFormatter.format("In output: {}", this.isInputMode));
+				this.output = undefined;
 			}
 			
 			// Add an exit condition for the loop, for example:
@@ -121,7 +135,11 @@ class ClientIOLogic{
 	}
 
 	static setIsInputModeBasedOnOutput(isPlaying, isMyTurn, output, setIsInputMode){
-		setIsInputMode(true);
+		if(output.match(/Opponent's word.*/)){
+			setIsInputMode(true);
+		}else if(output == 'Connected to match' && isMyTurn){
+			setIsInputMode(true);
+		}
 	}
 
 	static processInput(isPlaying, word, sendWordToServer, sendWordToMatch, setIsInputMode){

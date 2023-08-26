@@ -10,7 +10,6 @@ class Poll{
             if(variable != undefined){
                 return variable
             }
-            console.log(getVariable())
         }
     }
 }
